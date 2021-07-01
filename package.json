@@ -1,0 +1,9 @@
+{
+  "name": "auto-battler",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/masoodusmani/auto-battler.git",
+  "author": "Masood Usmani <masood.usmani@freighthub.com>",
+  "license": "MIT",
+  "private": false
+}
