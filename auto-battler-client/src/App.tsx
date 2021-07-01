@@ -73,6 +73,7 @@ function JoinedRoom() {
         )
         .join("")
     );
+    //This setHTML triggers a rerender
     setHTML(
       room?.state.board?.cells
         ?.map(
