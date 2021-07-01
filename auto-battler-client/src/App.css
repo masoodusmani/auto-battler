@@ -47,15 +47,19 @@ button {
 
 /* Grid */
 
-.Cell-main {
+.Cell {
   width: var(--cell-width);
   height: var(--cell-width);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Cell-main {
   background: bisque;
 }
 
 .Cell-alternate {
-  width: var(--cell-width);
-  height: var(--cell-width);
   background: indianred;
 }
 
@@ -64,4 +68,10 @@ button {
   width: calc(var(--cell-width) * 8);
   height: calc(var(--cell-width) * 8);
   flex-wrap: wrap;
+}
+
+.Character-Swordsman {
+  width: 70%;
+  height: 70%;
+  background: goldenrod;
 }

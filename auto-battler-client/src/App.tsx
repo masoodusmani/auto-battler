@@ -6,31 +6,41 @@ import { Room } from "colyseus.js";
 import {
   BoardState,
   CellState,
+  CharacterState,
   connectToArena,
   RoomState,
 } from "./arenaConnection";
 
+type CharacterProps = CharacterState;
+function Character({ name }: CharacterProps) {
+  return <div className={`Character-${name}`}></div>;
+}
+
 type CellProps = {
-  character: any;
+  character: CharacterState | undefined;
   type: "main" | "alternate";
 };
 
 function Cell({ character, type }: CellProps) {
-  return <div className={`Cell-${type}`}></div>;
+  return (
+    <div className={`Cell Cell-${type}`}>
+      {character && <Character name={character.name} />}
+    </div>
+  );
 }
 
-type BoardProps = BoardState;
+type BoardProps = { board: BoardState };
 
-function Board({ rowLength, cells }: BoardProps) {
+function Board({ board: { rowLength, cells } }: BoardProps) {
   function getRow(index: number) {
     return Math.floor(index / rowLength);
   }
-
+  console.log("inside board", cells);
   return (
     <div className={"Board-container"}>
       {cells.map((cell, index) => (
         <Cell
-          key={index}
+          key={`${index}-${cell.character?.name}`}
           character={cell.character}
           type={(index + getRow(index)) % 2 === 0 ? "main" : "alternate"}
         />
@@ -40,10 +50,28 @@ function Board({ rowLength, cells }: BoardProps) {
 }
 function JoinedRoom() {
   const [room, setRoom] = useState<Room<RoomState> | undefined>(undefined);
-  const [board, setBoard] = useState<BoardState | undefined>();
+  // const [board, setBoard] = useState<BoardState | undefined>();
   room?.onStateChange((newState) => {
-    setBoard(newState.board);
+    console.log(
+      "asdasd",
+      room?.state.board,
+
+      room?.state.board?.cells[0]?.character?.name,
+
+      room?.state.board?.cells.findIndex((cell) => cell.character != null)
+    );
+    // setBoard(newState.board);
   });
+  function moveCharacter() {
+    const index = room?.state.board.cells.findIndex((cell) => cell.character);
+    console.log(index);
+    if (index != null) {
+      room?.send("moveCharacter", {
+        startIndex: index,
+        endIndex: index + 1,
+      });
+    }
+  }
   return (
     <main>
       <button
@@ -54,7 +82,10 @@ function JoinedRoom() {
       >
         Connect to battle_arena_room
       </button>
-      {board ? <Board rowLength={board.rowLength} cells={board.cells} /> : null}
+      {room?.state.board && room.state.board.cells ? (
+        <Board key={Math.random()} board={room?.state.board} />
+      ) : null}
+      <button onClick={() => moveCharacter()}>Move</button>
     </main>
   );
 }

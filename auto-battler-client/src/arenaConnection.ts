@@ -3,8 +3,11 @@ import { Client, Room } from "colyseus.js";
 const client = new Client("ws://localhost:2567");
 let room: Room<RoomState>;
 
+export type CharacterState = {
+  name: string;
+};
 export type CellState = {
-  character: any;
+  character: CharacterState;
 };
 export type BoardState = {
   rowLength: number;

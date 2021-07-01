@@ -1,4 +1,4 @@
-import { Schema, Context, type, ArraySchema } from "@colyseus/schema";
+import { ArraySchema, Schema, type } from "@colyseus/schema";
 
 export class Character extends Schema {
   @type("string") name: string = "";
@@ -42,6 +42,11 @@ export class Board extends Schema {
   }
 }
 
-export class RoomState extends Schema {
-  @type(Board) board = new Board();
+export class Arsenal extends Schema {
+  @type("number") characterLimit = 8;
+  @type([Character]) characters = new ArraySchema<Character>();
+}
+
+export class Player extends Schema {
+  @type(Arsenal) arsenal = new Arsenal();
 }
