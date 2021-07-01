@@ -3,35 +3,34 @@ import logo from "./logo.svg";
 import "./App.css";
 import { change, connect, state } from "./connection";
 import { Room } from "colyseus.js";
-import {
-  BoardState,
-  CellState,
-  CharacterState,
-  connectToArena,
-  RoomState,
-} from "./arenaConnection";
+import { connectToArena } from "./arenaConnection";
+import { RoomState } from "./schema/RoomState";
+import { Board } from "./schema/Board";
+import { Character } from "./schema/Character";
 
-type CharacterProps = CharacterState;
-function Character({ name }: CharacterProps) {
+type CharacterProps = {
+  name: Character["name"];
+};
+function CharacterIcon({ name }: CharacterProps) {
   return <div className={`Character-${name}`}></div>;
 }
 
 type CellProps = {
-  character: CharacterState | undefined;
+  character: Character | undefined;
   type: "main" | "alternate";
 };
 
 function Cell({ character, type }: CellProps) {
   return (
     <div className={`Cell Cell-${type}`}>
-      {character && <Character name={character.name} />}
+      {character && <CharacterIcon name={character.name} />}
     </div>
   );
 }
 
-type BoardProps = { board: BoardState };
+type BoardProps = { board: Board };
 
-function Board({ board: { rowLength, cells } }: BoardProps) {
+function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
   function getRow(index: number) {
     return Math.floor(index / rowLength);
   }
@@ -50,7 +49,7 @@ function Board({ board: { rowLength, cells } }: BoardProps) {
 }
 function JoinedRoom() {
   const [room, setRoom] = useState<Room<RoomState> | undefined>(undefined);
-  // const [board, setBoard] = useState<BoardState | undefined>();
+  const [board, setBoard] = useState<Board | undefined>();
   room?.onStateChange((newState) => {
     console.log(
       "asdasd",
@@ -60,7 +59,17 @@ function JoinedRoom() {
 
       room?.state.board?.cells.findIndex((cell) => cell.character != null)
     );
-    // setBoard(newState.board);
+    console.log(
+      "board\n",
+      room?.state.board?.cells
+        ?.map(
+          ({ x, y, character }, index) =>
+            (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+        )
+        .join("")
+    );
+    // setBoard(undefined);
+    setBoard(newState.board);
   });
   function moveCharacter() {
     const index = room?.state.board.cells.findIndex((cell) => cell.character);
@@ -72,6 +81,11 @@ function JoinedRoom() {
       });
     }
   }
+  const get = () =>
+    room?.state.board?.cells?.map(
+      ({ x, y, character }, index) => (character?.name ?? index) + ","
+    );
+
   return (
     <main>
       <button
@@ -82,9 +96,8 @@ function JoinedRoom() {
       >
         Connect to battle_arena_room
       </button>
-      {room?.state.board && room.state.board.cells ? (
-        <Board key={Math.random()} board={room?.state.board} />
-      ) : null}
+      {/*{get()}*/}
+      {board ? <BoardComponent key={Math.random()} board={board} /> : null}
       <button onClick={() => moveCharacter()}>Move</button>
     </main>
   );

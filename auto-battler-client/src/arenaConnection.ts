@@ -1,21 +1,22 @@
 // connection.ts (client-side)
 import { Client, Room } from "colyseus.js";
+import { RoomState } from "./schema/RoomState";
 const client = new Client("ws://localhost:2567");
 let room: Room<RoomState>;
-
-export type CharacterState = {
-  name: string;
-};
-export type CellState = {
-  character: CharacterState;
-};
-export type BoardState = {
-  rowLength: number;
-  cells: CellState[];
-};
-export type RoomState = {
-  board: BoardState;
-};
+//
+// export type CharacterState = {
+//   name: string;
+// };
+// export type CellState = {
+//   character: CharacterState;
+// };
+// export type BoardState = {
+//   rowLength: number;
+//   cells: CellState[];
+// };
+// export type RoomState = {
+//   board: BoardState;
+// };
 export async function connectToArena() {
   try {
     room = await client.joinOrCreate("battle_arena_room", {});
