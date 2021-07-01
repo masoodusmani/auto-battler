@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import { change, connect, state } from "./connection";
@@ -30,10 +30,10 @@ function Cell({ character, type }: CellProps) {
 
 type BoardProps = { board: Board };
 
+function getRow(index: number, rowLength: number) {
+  return Math.floor(index / rowLength);
+}
 function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
-  function getRow(index: number) {
-    return Math.floor(index / rowLength);
-  }
   console.log("inside board", cells);
   return (
     <div className={"Board-container"}>
@@ -41,7 +41,9 @@ function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
         <Cell
           key={`${index}-${cell.character?.name}`}
           character={cell.character}
-          type={(index + getRow(index)) % 2 === 0 ? "main" : "alternate"}
+          type={
+            (index + getRow(index, rowLength)) % 2 === 0 ? "main" : "alternate"
+          }
         />
       ))}
     </div>
@@ -50,15 +52,18 @@ function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
 function JoinedRoom() {
   const [room, setRoom] = useState<Room<RoomState> | undefined>(undefined);
   const [board, setBoard] = useState<Board | undefined>();
+  const [re, setRe] = useState(false);
+  const [html, setHTML] = useState("");
+  // const [cells, setCells] = useState<Cell | undefined>();
   room?.onStateChange((newState) => {
-    console.log(
-      "asdasd",
-      room?.state.board,
-
-      room?.state.board?.cells[0]?.character?.name,
-
-      room?.state.board?.cells.findIndex((cell) => cell.character != null)
-    );
+    // console.log(
+    //   "asdasd",
+    //   room?.state.board,
+    //
+    //   room?.state.board?.cells[0]?.character?.name,
+    //
+    //   room?.state.board?.cells.findIndex((cell) => cell.character != null)
+    // );
     console.log(
       "board\n",
       room?.state.board?.cells
@@ -68,12 +73,24 @@ function JoinedRoom() {
         )
         .join("")
     );
+    setHTML(
+      room?.state.board?.cells
+        ?.map(
+          ({ x, y, character }, index) =>
+            (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+        )
+        .join("")
+    );
     // setBoard(undefined);
+    // setRe((re) => !re);
     setBoard(newState.board);
   });
+  // useEffect(() => {
+  //   console.log("test", board);
+  // }, [re]);
   function moveCharacter() {
     const index = room?.state.board.cells.findIndex((cell) => cell.character);
-    console.log(index);
+    // console.log(index);
     if (index != null) {
       room?.send("moveCharacter", {
         startIndex: index,
@@ -81,10 +98,10 @@ function JoinedRoom() {
       });
     }
   }
-  const get = () =>
-    room?.state.board?.cells?.map(
-      ({ x, y, character }, index) => (character?.name ?? index) + ","
-    );
+  // const get = () =>
+  //   room?.state.board?.cells?.map(
+  //     ({ x, y, character }, index) => (character?.name ?? index) + ","
+  //   );
 
   return (
     <main>
@@ -96,8 +113,30 @@ function JoinedRoom() {
       >
         Connect to battle_arena_room
       </button>
+      {/*<div*/}
+      {/*  dangerouslySetInnerHTML={{*/}
+      {/*    __html: html,*/}
+      {/*  }}*/}
+      {/*></div>*/}
       {/*{get()}*/}
       {board ? <BoardComponent key={Math.random()} board={board} /> : null}
+      {/*<div className={"Board-container"} key={Math.random()}>*/}
+      {/*  {board?.cells.map((cell, index) => {*/}
+      {/*    // console.log(index);*/}
+      {/*    return (*/}
+      {/*      <div*/}
+      {/*        key={`${index}-${cell.character?.name}`}*/}
+      {/*        className={`Cell Cell-${*/}
+      {/*          (index + getRow(index, board?.rowLength)) % 2 === 0*/}
+      {/*            ? "main"*/}
+      {/*            : "alternate"*/}
+      {/*        }`}*/}
+      {/*      >*/}
+      {/*        {cell.character && <CharacterIcon name={cell.character.name} />}*/}
+      {/*      </div>*/}
+      {/*    );*/}
+      {/*  })}*/}
+      {/*</div>*/}
       <button onClick={() => moveCharacter()}>Move</button>
     </main>
   );

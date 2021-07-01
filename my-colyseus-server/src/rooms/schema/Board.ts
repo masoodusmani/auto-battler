@@ -22,10 +22,11 @@ export class Cell extends Schema {
   @type("number") y: number;
   @type(Character) character: Character | undefined;
 
-  constructor(i: number, j: number) {
+  constructor(i: number, j: number, character?: Character) {
     super();
     this.x = i;
     this.y = j;
+    this.character = character;
   }
 }
 
