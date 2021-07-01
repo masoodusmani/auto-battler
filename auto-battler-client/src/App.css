@@ -1,3 +1,7 @@
+:root {
+  --cell-width: 48px;
+}
+
 .App {
   text-align: center;
 }
@@ -39,4 +43,25 @@
 
 button {
   font-size: calc(10px + 2vmin);
+}
+
+/* Grid */
+
+.Cell-main {
+  width: var(--cell-width);
+  height: var(--cell-width);
+  background: bisque;
+}
+
+.Cell-alternate {
+  width: var(--cell-width);
+  height: var(--cell-width);
+  background: indianred;
+}
+
+.Board-container {
+  display: flex;
+  width: calc(var(--cell-width) * 8);
+  height: calc(var(--cell-width) * 8);
+  flex-wrap: wrap;
 }
