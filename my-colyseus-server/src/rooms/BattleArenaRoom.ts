@@ -117,16 +117,25 @@ function attack(state: RoomState, cell: Cell) {
     getIndex(W[0], W[1], state.board.rowLength)
   );
 
-  function attackCell(cell: Cell) {
-    if (cell.character != null) {
-      console.log("attacking", cell.x, cell.y, cell.character.health, attack);
+  function attackCell(cellToAttack: Cell) {
+    if (
+      cellToAttack.character != null &&
+      cellToAttack.character.owner !== cell.character.owner
+    ) {
+      console.log(
+        "attacking",
+        cellToAttack.x,
+        cellToAttack.y,
+        cellToAttack.character.health,
+        attack
+      );
       // Clone is necessary for the update to propagate
-      const char = cell.character.clone();
+      const char = cellToAttack.character.clone();
       char.health -= attack;
-      cell.character = char;
+      cellToAttack.character = char;
 
-      if (cell.character.health <= 0) {
-        cell.character = undefined;
+      if (cellToAttack.character.health <= 0) {
+        cellToAttack.character = undefined;
       }
       return true;
     }
@@ -224,6 +233,19 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
   setInterval(() => game(state), tick);
 };
 
+function createSwordsman(client: Client) {
+  function rand() {
+    return Math.floor(Math.random() * 5);
+  }
+
+  const char = new Swordsman();
+  char.owner = client.sessionId;
+  char.maxHealth = 50 + rand() * 10;
+  char.health = char.maxHealth;
+  char.attack = 3 + rand();
+  return char;
+}
+
 export class BattleArenaRoom extends Room<RoomState> {
   maxClients = 2;
 
@@ -277,17 +299,12 @@ export class BattleArenaRoom extends Room<RoomState> {
     // this.state.players[this.state.players.length - 1].arsenal.characters.push(
     //   new Swordsman()
     // );
-    function rand() {
-      return Math.floor(Math.random() * 5);
-    }
-    const char = new Swordsman();
-    char.owner = client.sessionId;
-    char.maxHealth = 50 + rand() * 10;
-    char.health = char.maxHealth;
-    char.attack = 3 + rand();
     this.state.board.cells[
       Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
-    ].character = char;
+    ].character = createSwordsman(client);
+    this.state.board.cells[
+      Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
+    ].character = createSwordsman(client);
   }
 
   onLeave(client: Client, consented: boolean) {

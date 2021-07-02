@@ -13,13 +13,14 @@ type CharacterProps = {
   name: Character["name"];
   health: number;
   maxHealth: number;
+  alignment: "friend" | "foe";
 };
-function CharacterIcon({ name, health, maxHealth }: CharacterProps) {
+function CharacterIcon({ name, health, maxHealth, alignment }: CharacterProps) {
   console.log("health", health, maxHealth);
   return (
     <div className={`Character-${name}`}>
       <div
-        className={"Character-health"}
+        className={`Character-health Character-${alignment}`}
         style={{
           width: `${(health / maxHealth) * 100}%`,
         }}
@@ -33,7 +34,7 @@ type CellProps = {
   type: "main" | "alternate";
 };
 
-function Cell({ character, type, children }: CellProps) {
+function Cell({ character, type, children, sessionId }: CellProps) {
   return (
     <div className={`Cell Cell-${type}`}>
       {character ? (
@@ -41,6 +42,7 @@ function Cell({ character, type, children }: CellProps) {
           name={character.name}
           health={character.health}
           maxHealth={character.maxHealth}
+          alignment={sessionId === character.owner ? "friend" : "foe"}
         />
       ) : (
         children
@@ -54,7 +56,10 @@ type BoardProps = { board: Board };
 function getRow(index: number, rowLength: number) {
   return Math.floor(index / rowLength);
 }
-function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
+function BoardComponent({
+  board: { rowLength, cells },
+  sessionId,
+}: BoardProps) {
   console.log("inside board", cells);
   return (
     <div className={"Board-container"}>
@@ -65,6 +70,7 @@ function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
           type={
             (index + getRow(index, rowLength)) % 2 === 0 ? "main" : "alternate"
           }
+          sessionId={sessionId}
         >
           {cell.x},{cell.y}
         </Cell>
@@ -91,7 +97,11 @@ function GameComponent({ room }: { room: Room<RoomState> }) {
         onDragEnd={(result, provided) => console.log(result, provided)}
       >
         {room.state.board ? (
-          <BoardComponent key={Math.random()} board={room.state.board} />
+          <BoardComponent
+            key={Math.random()}
+            board={room.state.board}
+            sessionId={room.sessionId}
+          />
         ) : null}
         <button onClick={() => moveCharacter()}>Move</button>
       </DragDropContext>
