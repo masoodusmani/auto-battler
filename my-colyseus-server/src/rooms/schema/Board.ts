@@ -2,6 +2,7 @@ import { ArraySchema, Schema, type } from "@colyseus/schema";
 
 export class Character extends Schema {
   @type("string") name: string = "";
+  @type("string") owner: string = "";
 }
 
 export class Swordsman extends Character {

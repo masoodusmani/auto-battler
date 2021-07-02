@@ -3,6 +3,20 @@ import { MyRoomState } from "./schema/MyRoomState";
 import { Board, Player, Swordsman } from "./schema/Board";
 import { RoomState } from "./schema/RoomState";
 
+function moveCharacter(state, client, message) {
+  console.log(message);
+  const matchedCell = state.board.cells.at(message.startIndex);
+  if (
+    !matchedCell.character ||
+    matchedCell.character.owner !== client.sessionId
+  )
+    return;
+  const cellToMoveTo = state.board.cells[message.endIndex];
+  if (cellToMoveTo.character) return;
+  state.board.cells[message.endIndex].character = matchedCell.character;
+  matchedCell.character = undefined;
+}
+
 export class BattleArenaRoom extends Room<RoomState> {
   maxClients = 2;
   onCreate(options: any) {
@@ -11,12 +25,7 @@ export class BattleArenaRoom extends Room<RoomState> {
       //
       // handle "type" message
       //
-      console.log(message);
-      const matchedCell = this.state.board.cells.at(message.startIndex);
-      if (!matchedCell.character) return;
-      this.state.board.cells[message.endIndex].character =
-        matchedCell.character;
-      matchedCell.character = undefined;
+      moveCharacter(this.state, client, message);
     });
 
     this.onMessage("change", (client, message) => {
@@ -35,8 +44,9 @@ export class BattleArenaRoom extends Room<RoomState> {
     // this.state.players[this.state.players.length - 1].arsenal.characters.push(
     //   new Swordsman()
     // );
-    this.state.board.cells[this.state.players.length - 1].character =
-      new Swordsman();
+    const char = new Swordsman();
+    char.owner = client.sessionId;
+    this.state.board.cells[this.state.players.length - 1].character = char;
   }
 
   onLeave(client: Client, consented: boolean) {

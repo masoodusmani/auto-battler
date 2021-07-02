@@ -73,5 +73,7 @@ button {
 .Character-Swordsman {
   width: 70%;
   height: 70%;
-  background: goldenrod;
+  /*background: white;*/
+  /*border: 1px solid #282c34;*/
+  background-image: url("./assets/dagger.png");
 }

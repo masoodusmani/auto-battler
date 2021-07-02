@@ -55,42 +55,48 @@ function JoinedRoom() {
   const [re, setRe] = useState(false);
   const [html, setHTML] = useState("");
   // const [cells, setCells] = useState<Cell | undefined>();
-  room?.onStateChange((newState) => {
-    // console.log(
-    //   "asdasd",
-    //   room?.state.board,
-    //
-    //   room?.state.board?.cells[0]?.character?.name,
-    //
-    //   room?.state.board?.cells.findIndex((cell) => cell.character != null)
-    // );
-    console.log(
-      "board\n",
-      room?.state.board?.cells
-        ?.map(
-          ({ x, y, character }, index) =>
-            (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-        )
-        .join("")
-    );
-    //This setHTML triggers a rerender
-    setHTML(
-      room?.state.board?.cells
-        ?.map(
-          ({ x, y, character }, index) =>
-            (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-        )
-        .join("")
-    );
-    // setBoard(undefined);
-    // setRe((re) => !re);
-    setBoard(newState.board);
-  });
+  useEffect(() => {
+    room?.onStateChange((newState) => {
+      // console.log(
+      //   "asdasd",
+      //   room?.state.board,
+      //
+      //   room?.state.board?.cells[0]?.character?.name,
+      //
+      //   room?.state.board?.cells.findIndex((cell) => cell.character != null)
+      // );
+      console.log(
+        "board\n",
+        room?.state.board?.cells
+          ?.map(
+            ({ x, y, character }, index) =>
+              (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+          )
+          .join("")
+      );
+      //This setHTML triggers a rerender
+      // setHTML(
+      //   room?.state.board?.cells
+      //     ?.map(
+      //       ({ x, y, character }, index) =>
+      //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+      //     )
+      //     .join("")
+      // );
+      // setBoard(undefined);
+      //This setRe triggers a rerender
+      setRe((re) => !re);
+      setBoard(newState.board);
+    });
+  }, [room]);
+
   // useEffect(() => {
   //   console.log("test", board);
   // }, [re]);
   function moveCharacter() {
-    const index = room?.state.board.cells.findIndex((cell) => cell.character);
+    const index = room?.state.board.cells.findIndex(
+      (cell) => cell.character?.owner === room?.sessionId
+    );
     // console.log(index);
     if (index != null) {
       room?.send("moveCharacter", {
@@ -99,45 +105,22 @@ function JoinedRoom() {
       });
     }
   }
-  // const get = () =>
-  //   room?.state.board?.cells?.map(
-  //     ({ x, y, character }, index) => (character?.name ?? index) + ","
-  //   );
 
   return (
     <main>
-      <button
-        type="button"
-        onClick={async () => {
-          setRoom(await connectToArena());
-        }}
-      >
-        Connect to battle_arena_room
-      </button>
-      {/*<div*/}
-      {/*  dangerouslySetInnerHTML={{*/}
-      {/*    __html: html,*/}
-      {/*  }}*/}
-      {/*></div>*/}
-      {/*{get()}*/}
+      {!room ? (
+        <button
+          type="button"
+          onClick={async () => {
+            setRoom(await connectToArena());
+          }}
+        >
+          Connect to battle_arena_room
+        </button>
+      ) : (
+        `${room.name}: ${room.id}`
+      )}
       {board ? <BoardComponent key={Math.random()} board={board} /> : null}
-      {/*<div className={"Board-container"} key={Math.random()}>*/}
-      {/*  {board?.cells.map((cell, index) => {*/}
-      {/*    // console.log(index);*/}
-      {/*    return (*/}
-      {/*      <div*/}
-      {/*        key={`${index}-${cell.character?.name}`}*/}
-      {/*        className={`Cell Cell-${*/}
-      {/*          (index + getRow(index, board?.rowLength)) % 2 === 0*/}
-      {/*            ? "main"*/}
-      {/*            : "alternate"*/}
-      {/*        }`}*/}
-      {/*      >*/}
-      {/*        {cell.character && <CharacterIcon name={cell.character.name} />}*/}
-      {/*      </div>*/}
-      {/*    );*/}
-      {/*  })}*/}
-      {/*</div>*/}
       <button onClick={() => moveCharacter()}>Move</button>
     </main>
   );
