@@ -1,6 +1,7 @@
 import { Client, Room } from "colyseus";
 import { Cell, Player, Swordsman } from "./schema/Board";
 import { Phase, RoomState } from "./schema/RoomState";
+import { SimulationCallback } from "colyseus/lib/Room";
 
 const goal = {
   x: 3,
@@ -15,9 +16,15 @@ function moveCharacterFromMessage(state, client, message) {
   )
     return;
   const cellToMoveTo = state.board.cells[message.endIndex];
-  if (message.endIndex > 63 || cellToMoveTo.character) return;
+  if (
+    message.endIndex > 63 ||
+    cellToMoveTo.character ||
+    (cellToMoveTo.x === matchedCell.x && cellToMoveTo.y === matchedCell.y)
+  )
+    return false;
   state.board.cells[message.endIndex].character = matchedCell.character;
   matchedCell.character = undefined;
+  return true;
 }
 function moveCharacter(
   state: RoomState,
@@ -112,7 +119,7 @@ function attack(state: RoomState, cell: Cell) {
 
   function attackCell(cell: Cell) {
     if (cell.character != null) {
-      console.log("attacking", cell.character.health, attack);
+      console.log("attacking", cell.x, cell.y, cell.character.health, attack);
       cell.character.health -= attack;
       if (cell.character.health <= 0) {
         cell.character = undefined;
@@ -141,7 +148,7 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
           state.phase = Phase.fight;
           state.time = 0;
         } else if (state.phase === Phase.fight) {
-          if (state.time > 1000) {
+          if (state.time >= 500) {
             state.time = 0;
             // console.log(
             //   "board before\n",
@@ -156,13 +163,13 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
               if (cell.character) {
                 const end = getDirection(state, cell.x, cell.y, goal);
                 const coords = getCoords(state, cell.x, cell.y, goal);
-                console.log(
-                  `start ${index} ${cell.x} ${cell.y} end ${end.x} ${end.y}, coords ${coords[0]} ${coords[1]}`
-                );
+                // console.log(
+                //   `start ${index} ${cell.x} ${cell.y} end ${end.x} ${end.y}, coords ${coords[0]} ${coords[1]}`
+                // );
                 if (coords[0] === cell.x && coords[1] === cell.y) {
                   attack(state, cell);
                 } else {
-                  moveCharacterFromMessage(
+                  const moved = moveCharacterFromMessage(
                     state,
                     {},
                     {
@@ -170,6 +177,10 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
                       endIndex: coords[0] + coords[1] * state.board.rowLength,
                     }
                   );
+                  console.log("could move?", moved);
+                  if (!moved) {
+                    attack(state, cell);
+                  }
                 }
 
                 // const end = getDirection(state, cell.x, cell.y, goal);
@@ -203,6 +214,10 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
 
 export class BattleArenaRoom extends Room<RoomState> {
   maxClients = 2;
+  setSimulationInterval(onTickCallback?: SimulationCallback, delay?: number) {
+    super.setSimulationInterval(onTickCallback, delay);
+  }
+
   onCreate(options: any) {
     this.setState(new RoomState());
     gameLoop(this.state, this);

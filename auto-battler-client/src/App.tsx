@@ -111,7 +111,9 @@ function JoinedRoom() {
         room?.state.board?.cells
           ?.map(
             ({ x, y, character }, index) =>
-              (character?.health ?? index) + "," + (y == 7 ? "\n" : "")
+              (character ? character.name + character?.health : index) +
+              "," +
+              (x == 7 ? "\n" : "")
           )
           .join("")
       );
@@ -139,6 +141,8 @@ function JoinedRoom() {
             {room.state.phase === Phase.countdown
               ? Math.ceil((3000 - room.state.time) / 1000)
               : room.state.phase}
+            {room.state?.board?.cells?.at(26).character?.health}
+            {room.state?.board?.cells?.at(27).character?.health}
           </div>
           <GameComponent room={room} />
         </>
