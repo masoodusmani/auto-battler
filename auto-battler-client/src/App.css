@@ -76,4 +76,14 @@ button {
   /*background: white;*/
   /*border: 1px solid #282c34;*/
   background-image: url("./assets/dagger.png");
+  position: relative;
+}
+
+.Character-health {
+  /*width: 100%;*/
+  height: 5px;
+  position: absolute;
+  top:-3px;
+  left:0;
+  background: forestgreen;
 }

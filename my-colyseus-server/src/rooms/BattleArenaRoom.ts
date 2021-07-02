@@ -1,5 +1,5 @@
 import { Client, Room } from "colyseus";
-import { Player, Swordsman } from "./schema/Board";
+import { Cell, Player, Swordsman } from "./schema/Board";
 import { Phase, RoomState } from "./schema/RoomState";
 
 const goal = {
@@ -66,6 +66,9 @@ function getCoords(
   y: number,
   target: typeof goal
 ) {
+  if (x === target.x && y === target.y) {
+    return [x, y];
+  }
   const N = [x, y - 1];
   const S = [x, y + 1];
   const E = [x + 1, y];
@@ -84,6 +87,46 @@ function getCoords(
   if (sumE === minVal) return E;
   if (sumW === minVal) return W;
 }
+function getIndex(x: number, y: number, rowLength: number) {
+  return x + y * rowLength;
+}
+function attack(state: RoomState, cell: Cell) {
+  const { x, y } = cell;
+  const N = [x, y - 1];
+  const S = [x, y + 1];
+  const E = [x + 1, y];
+  const W = [x - 1, y];
+  const attack = cell.character.attack;
+  const NCell = state.board.cells.at(
+    getIndex(N[0], N[1], state.board.rowLength)
+  );
+  const SCell = state.board.cells.at(
+    getIndex(S[0], S[1], state.board.rowLength)
+  );
+  const ECell = state.board.cells.at(
+    getIndex(E[0], E[1], state.board.rowLength)
+  );
+  const WCell = state.board.cells.at(
+    getIndex(W[0], W[1], state.board.rowLength)
+  );
+
+  function attackCell(cell: Cell) {
+    if (cell.character != null) {
+      console.log("attacking", cell.character.health, attack);
+      cell.character.health -= attack;
+      if (cell.character.health <= 0) {
+        cell.character = undefined;
+      }
+      return true;
+    }
+  }
+
+  if (attackCell(NCell)) return;
+  if (attackCell(SCell)) return;
+  if (attackCell(ECell)) return;
+  if (attackCell(WCell)) return;
+}
+
 const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
   const tick = 500;
   setInterval(() => {
@@ -100,15 +143,15 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
         } else if (state.phase === Phase.fight) {
           if (state.time > 1000) {
             state.time = 0;
-            console.log(
-              "board before\n",
-              this1.state.board?.cells
-                ?.map(
-                  ({ x, y, character }, index) =>
-                    (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-                )
-                .join("")
-            );
+            // console.log(
+            //   "board before\n",
+            //   this1.state.board?.cells
+            //     ?.map(
+            //       ({ x, y, character }, index) =>
+            //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+            //     )
+            //     .join("")
+            // );
             state.board.cells.clone().forEach((cell, index) => {
               if (cell.character) {
                 const end = getDirection(state, cell.x, cell.y, goal);
@@ -116,14 +159,19 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
                 console.log(
                   `start ${index} ${cell.x} ${cell.y} end ${end.x} ${end.y}, coords ${coords[0]} ${coords[1]}`
                 );
-                moveCharacterFromMessage(
-                  state,
-                  {},
-                  {
-                    startIndex: index,
-                    endIndex: coords[0] + coords[1] * state.board.rowLength,
-                  }
-                );
+                if (coords[0] === cell.x && coords[1] === cell.y) {
+                  attack(state, cell);
+                } else {
+                  moveCharacterFromMessage(
+                    state,
+                    {},
+                    {
+                      startIndex: index,
+                      endIndex: coords[0] + coords[1] * state.board.rowLength,
+                    }
+                  );
+                }
+
                 // const end = getDirection(state, cell.x, cell.y, goal);
                 // console.log("character found at ", cell.x, cell.y);
                 // console.log("going to ", end.x + state.board.rowLength * end.y);
@@ -137,15 +185,15 @@ const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
                 // console.log("moved ", moved, cell.character?.name);
               }
             });
-            console.log(
-              "board after\n",
-              this1.state.board?.cells
-                ?.map(
-                  ({ x, y, character }, index) =>
-                    (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-                )
-                .join("")
-            );
+            // console.log(
+            //   "board after\n",
+            //   this1.state.board?.cells
+            //     ?.map(
+            //       ({ x, y, character }, index) =>
+            //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+            //     )
+            //     .join("")
+            // );
           }
         }
       }
@@ -204,7 +252,8 @@ export class BattleArenaRoom extends Room<RoomState> {
     }
     const char = new Swordsman();
     char.owner = client.sessionId;
-    char.health = 10 + rand() * 10;
+    char.maxHealth = 50 + rand() * 10;
+    char.health = char.maxHealth;
     char.attack = 3 + rand();
     this.state.board.cells[
       Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)

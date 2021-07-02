@@ -11,9 +11,21 @@ import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 type CharacterProps = {
   name: Character["name"];
+  health: number;
+  maxHealth: number;
 };
-function CharacterIcon({ name }: CharacterProps) {
-  return <div className={`Character-${name}`}></div>;
+function CharacterIcon({ name, health, maxHealth }: CharacterProps) {
+  console.log("health", health, maxHealth);
+  return (
+    <div className={`Character-${name}`}>
+      <div
+        className={"Character-health"}
+        style={{
+          width: `${(health / maxHealth) * 100}%`,
+        }}
+      />
+    </div>
+  );
 }
 
 type CellProps = {
@@ -24,7 +36,15 @@ type CellProps = {
 function Cell({ character, type, children }: CellProps) {
   return (
     <div className={`Cell Cell-${type}`}>
-      {character ? <CharacterIcon name={character.name} /> : children}
+      {character ? (
+        <CharacterIcon
+          name={character.name}
+          health={character.health}
+          maxHealth={character.maxHealth}
+        />
+      ) : (
+        children
+      )}
     </div>
   );
 }
@@ -91,7 +111,7 @@ function JoinedRoom() {
         room?.state.board?.cells
           ?.map(
             ({ x, y, character }, index) =>
-              (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+              (character?.health ?? index) + "," + (y == 7 ? "\n" : "")
           )
           .join("")
       );
