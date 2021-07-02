@@ -123,17 +123,8 @@ function attack(state: RoomState, cell: Cell) {
       // Clone is necessary for the update to propagate
       const char = cell.character.clone();
       char.health -= attack;
-      // char.maxHealth = cell.character.maxHealth;
-      // cell.character = undefined;
       cell.character = char;
-      console.log(
-        "mhealth",
-        cell.character.maxHealth,
-        "attack",
-        attack,
-        "health",
-        cell.character.health
-      );
+
       if (cell.character.health <= 0) {
         cell.character = undefined;
       }
