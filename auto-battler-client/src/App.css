@@ -77,6 +77,7 @@ button {
   /*border: 1px solid #282c34;*/
   background-image: url("./assets/dagger.png");
   position: relative;
+  transition: all 0.4s ease;
 }
 .Character-friend {
   background: forestgreen;
@@ -91,4 +92,26 @@ button {
   position: absolute;
   top:-3px;
   left:0;
+}
+
+.Character-N {
+  /*background: forestgreen;*/
+
+}
+.Character-attack  {
+  animation-name: attack;
+  animation-duration: .6s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes attack {
+  0%{
+    transform:translate(0,0)
+  }
+  40%{
+    transform:translate(0,-24px)
+  }
+  100%{
+    transform:translate(0,0)
+  }
 }

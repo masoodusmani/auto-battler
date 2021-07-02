@@ -14,4 +14,6 @@ export class Character extends Schema {
     @type("number") public maxHealth!: number;
     @type("number") public health!: number;
     @type("number") public attack!: number;
+    @type("string") public facing!: string;
+    @type("string") public action!: string;
 }

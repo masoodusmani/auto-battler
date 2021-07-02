@@ -9,16 +9,36 @@ import { Board } from "./schema/Board";
 import { Character } from "./schema/Character";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
+export enum Direction {
+  N = "N",
+  S = "S",
+  E = "E",
+  W = "W",
+}
+export enum Action {
+  wait = "wait",
+  move = "move",
+  attack = "attack",
+}
 type CharacterProps = {
   name: Character["name"];
   health: number;
   maxHealth: number;
   alignment: "friend" | "foe";
 };
-function CharacterIcon({ name, health, maxHealth, alignment }: CharacterProps) {
-  console.log("health", health, maxHealth);
+function CharacterIcon({
+  name,
+  health,
+  maxHealth,
+  alignment,
+  facing,
+  action,
+}: CharacterProps) {
+  console.log("health", health, maxHealth, action, facing);
   return (
-    <div className={`Character-${name}`}>
+    <div
+      className={`Character-${name} Character-${facing} Character-${action}`}
+    >
       <div
         className={`Character-health Character-${alignment}`}
         style={{
@@ -42,6 +62,8 @@ function Cell({ character, type, children, sessionId }: CellProps) {
           name={character.name}
           health={character.health}
           maxHealth={character.maxHealth}
+          facing={character.facing}
+          action={character.action}
           alignment={sessionId === character.owner ? "friend" : "foe"}
         />
       ) : (
@@ -153,8 +175,8 @@ function JoinedRoom() {
             {room.state.phase === Phase.countdown
               ? Math.ceil((3000 - room.state.time) / 1000)
               : room.state.phase}
-            {room.state?.board?.cells?.at(26).character?.health}
-            {room.state?.board?.cells?.at(27).character?.health}
+            {/*{room.state?.board?.cells?.at(26).character?.health}*/}
+            {/*{room.state?.board?.cells?.at(27).character?.health}*/}
           </div>
           <GameComponent room={room} />
         </>

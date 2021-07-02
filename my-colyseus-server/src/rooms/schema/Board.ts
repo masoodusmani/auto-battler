@@ -1,11 +1,24 @@
 import { ArraySchema, Schema, type } from "@colyseus/schema";
 
+export enum Direction {
+  N = "N",
+  S = "S",
+  E = "E",
+  W = "W",
+}
+export enum Action {
+  wait = "wait",
+  move = "move",
+  attack = "attack",
+}
 export class Character extends Schema {
   @type("string") name: string = "";
   @type("string") owner: string = "";
   @type("number") maxHealth: number = 0;
   @type("number") health: number = 0;
   @type("number") attack: number = 0;
+  @type("string") facing: Direction = Direction.N;
+  @type("string") action: Action = Action.wait;
 }
 
 export class Swordsman extends Character {

@@ -1,7 +1,6 @@
 import { Client, Room } from "colyseus";
-import { Cell, Player, Swordsman } from "./schema/Board";
+import { Action, Cell, Direction, Player, Swordsman } from "./schema/Board";
 import { Phase, RoomState } from "./schema/RoomState";
-import { SimulationCallback } from "colyseus/lib/Room";
 
 const goal = {
   x: 3,
@@ -89,10 +88,33 @@ function getCoords(
   const sumE = Ecompare[0] + Ecompare[1];
   const sumW = Wcompare[0] + Wcompare[1];
   const minVal = Math.min(sumN, sumS, sumE, sumW);
-  if (sumN === minVal) return N;
-  if (sumS === minVal) return S;
-  if (sumE === minVal) return E;
-  if (sumW === minVal) return W;
+  if (state.board.cells.at(getIndex(x, y, state.board.rowLength)).character) {
+    if (sumN === minVal) {
+      state.board.cells.at(
+        getIndex(x, y, state.board.rowLength)
+      ).character.facing = Direction.N;
+      return N;
+    }
+    if (sumS === minVal) {
+      state.board.cells.at(
+        getIndex(x, y, state.board.rowLength)
+      ).character.facing = Direction.S;
+      return S;
+    }
+    if (sumE === minVal) {
+      state.board.cells.at(
+        getIndex(x, y, state.board.rowLength)
+      ).character.facing = Direction.E;
+      return E;
+    }
+    if (sumW === minVal) {
+      state.board.cells.at(
+        getIndex(x, y, state.board.rowLength)
+      ).character.facing = Direction.W;
+      return W;
+    }
+  }
+  return N;
 }
 function getIndex(x: number, y: number, rowLength: number) {
   return x + y * rowLength;
@@ -119,8 +141,8 @@ function attack(state: RoomState, cell: Cell) {
 
   function attackCell(cellToAttack: Cell) {
     if (
-      cellToAttack.character != null &&
-      cellToAttack.character.owner !== cell.character.owner
+      cellToAttack?.character != null &&
+      cellToAttack?.character.owner !== cell.character.owner
     ) {
       console.log(
         "attacking",
@@ -141,12 +163,35 @@ function attack(state: RoomState, cell: Cell) {
     }
   }
 
-  if (attackCell(NCell)) return;
-  if (attackCell(SCell)) return;
-  if (attackCell(ECell)) return;
-  if (attackCell(WCell)) return;
+  const char = cell.character.clone();
+  if (attackCell(NCell)) {
+    char.facing = Direction.N;
+    char.action = Action.attack;
+    cell.character = char;
+    return;
+  }
+  if (attackCell(SCell)) {
+    char.facing = Direction.S;
+    char.action = Action.attack;
+    cell.character = char;
+    return;
+  }
+  if (attackCell(ECell)) {
+    char.facing = Direction.E;
+    char.action = Action.attack;
+    cell.character = char;
+    return;
+  }
+  if (attackCell(WCell)) {
+    char.facing = Direction.W;
+    char.action = Action.attack;
+    cell.character = char;
+    return;
+  }
+  cell.character.facing = Direction.N;
+  // cell.character.action = Action.wait;
 }
-const game = (state: RoomState, tick = 1000) => {
+const game = (state: RoomState, tick = 500) => {
   if (state.players.length == 1) {
     state.phase = Phase.wait;
   } else {
@@ -299,12 +344,11 @@ export class BattleArenaRoom extends Room<RoomState> {
     // this.state.players[this.state.players.length - 1].arsenal.characters.push(
     //   new Swordsman()
     // );
-    this.state.board.cells[
-      Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
-    ].character = createSwordsman(client);
-    this.state.board.cells[
-      Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
-    ].character = createSwordsman(client);
+    for (let i = 0; i < 10; i++) {
+      this.state.board.cells[
+        Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
+      ].character = createSwordsman(client);
+    }
   }
 
   onLeave(client: Client, consented: boolean) {
