@@ -10,6 +10,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@types/react-beautiful-dnd": "^13.0.0",
     "colyseus": "^0.14.16",
     "colyseus.js": "^0.14.12"
   },

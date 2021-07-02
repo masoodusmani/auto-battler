@@ -46,7 +46,9 @@ export class BattleArenaRoom extends Room<RoomState> {
     // );
     const char = new Swordsman();
     char.owner = client.sessionId;
-    this.state.board.cells[this.state.players.length - 1].character = char;
+    this.state.board.cells[
+      Math.floor((this.state.players.length - 1) * 32 + Math.random() * 32)
+    ].character = char;
   }
 
   onLeave(client: Client, consented: boolean) {
