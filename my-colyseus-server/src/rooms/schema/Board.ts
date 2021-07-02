@@ -3,6 +3,8 @@ import { ArraySchema, Schema, type } from "@colyseus/schema";
 export class Character extends Schema {
   @type("string") name: string = "";
   @type("string") owner: string = "";
+  @type("number") health: number = 0;
+  @type("number") attack: number = 0;
 }
 
 export class Swordsman extends Character {
@@ -25,8 +27,8 @@ export class Cell extends Schema {
 
   constructor(i: number, j: number, character?: Character) {
     super();
-    this.x = i;
-    this.y = j;
+    this.x = j;
+    this.y = i;
     this.character = character;
   }
 }

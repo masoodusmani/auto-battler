@@ -21,10 +21,10 @@ type CellProps = {
   type: "main" | "alternate";
 };
 
-function Cell({ character, type }: CellProps) {
+function Cell({ character, type, children }: CellProps) {
   return (
     <div className={`Cell Cell-${type}`}>
-      {character && <CharacterIcon name={character.name} />}
+      {character ? <CharacterIcon name={character.name} /> : children}
     </div>
   );
 }
@@ -45,7 +45,9 @@ function BoardComponent({ board: { rowLength, cells } }: BoardProps) {
           type={
             (index + getRow(index, rowLength)) % 2 === 0 ? "main" : "alternate"
           }
-        />
+        >
+          {cell.x},{cell.y}
+        </Cell>
       ))}
     </div>
   );
@@ -116,7 +118,7 @@ function JoinedRoom() {
           <div>
             {room.state.phase === Phase.countdown
               ? Math.ceil((3000 - room.state.time) / 1000)
-              : ""}
+              : room.state.phase}
           </div>
           <GameComponent room={room} />
         </>
