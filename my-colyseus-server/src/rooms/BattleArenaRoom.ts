@@ -1,7 +1,6 @@
-import { Room, Client } from "colyseus";
-import { MyRoomState } from "./schema/MyRoomState";
-import { Board, Player, Swordsman } from "./schema/Board";
-import { RoomState } from "./schema/RoomState";
+import { Client, Room } from "colyseus";
+import { Player, Swordsman } from "./schema/Board";
+import { Phase, RoomState } from "./schema/RoomState";
 
 function moveCharacter(state, client, message) {
   console.log(message);
@@ -17,10 +16,29 @@ function moveCharacter(state, client, message) {
   matchedCell.character = undefined;
 }
 
+const gameLoop = (state: RoomState) => {
+  const tick = 60;
+  setInterval(() => {
+    if (state.players.length == 1) {
+      state.phase = Phase.wait;
+    } else {
+      if (state.phase === Phase.wait) {
+        state.phase = Phase.countdown;
+      } else {
+        state.time += tick;
+        if (state.time >= 3000 && state.phase !== Phase.fight) {
+          state.phase = Phase.fight;
+        }
+      }
+    }
+  }, tick);
+};
+
 export class BattleArenaRoom extends Room<RoomState> {
   maxClients = 2;
   onCreate(options: any) {
     this.setState(new RoomState());
+    gameLoop(this.state);
     this.onMessage("moveCharacter", (client, message) => {
       //
       // handle "type" message

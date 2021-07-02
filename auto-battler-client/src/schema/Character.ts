@@ -10,4 +10,5 @@ import { Schema, type, ArraySchema, MapSchema, DataChange } from '@colyseus/sche
 
 export class Character extends Schema {
     @type("string") public name!: string;
+    @type("string") public owner!: string;
 }

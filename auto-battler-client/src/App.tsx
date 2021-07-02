@@ -113,11 +113,23 @@ function JoinedRoom() {
       ) : (
         <>
           {`${room.name}: ${room.id}`}
+          <div>
+            {room.state.phase === Phase.countdown
+              ? Math.ceil((3000 - room.state.time) / 1000)
+              : ""}
+          </div>
           <GameComponent room={room} />
         </>
       )}
     </main>
   );
+}
+export enum Phase {
+  wait = "wait",
+  countdown = "countdown",
+  earn = "earn",
+  buy = "buy",
+  fight = "fight",
 }
 
 function App() {
