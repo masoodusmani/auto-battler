@@ -111,7 +111,9 @@ function JoinedRoom() {
         room?.state.board?.cells
           ?.map(
             ({ x, y, character }, index) =>
-              (character ? character.name + character?.health : index) +
+              (character
+                ? `${character.name}${character?.health}/${character?.maxHealth}`
+                : index) +
               "," +
               (x == 7 ? "\n" : "")
           )

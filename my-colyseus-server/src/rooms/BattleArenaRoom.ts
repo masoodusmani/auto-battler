@@ -120,7 +120,20 @@ function attack(state: RoomState, cell: Cell) {
   function attackCell(cell: Cell) {
     if (cell.character != null) {
       console.log("attacking", cell.x, cell.y, cell.character.health, attack);
-      cell.character.health -= attack;
+      // Clone is necessary for the update to propagate
+      const char = cell.character.clone();
+      char.health -= attack;
+      // char.maxHealth = cell.character.maxHealth;
+      // cell.character = undefined;
+      cell.character = char;
+      console.log(
+        "mhealth",
+        cell.character.maxHealth,
+        "attack",
+        attack,
+        "health",
+        cell.character.health
+      );
       if (cell.character.health <= 0) {
         cell.character = undefined;
       }
@@ -133,94 +146,105 @@ function attack(state: RoomState, cell: Cell) {
   if (attackCell(ECell)) return;
   if (attackCell(WCell)) return;
 }
-
-const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
-  const tick = 500;
-  setInterval(() => {
-    if (state.players.length == 1) {
-      state.phase = Phase.wait;
+const game = (state: RoomState, tick = 1000) => {
+  if (state.players.length == 1) {
+    state.phase = Phase.wait;
+  } else {
+    if (state.phase === Phase.wait) {
+      state.phase = Phase.countdown;
     } else {
-      if (state.phase === Phase.wait) {
-        state.phase = Phase.countdown;
-      } else {
-        state.time += tick;
-        if (state.time >= 3000 && state.phase !== Phase.fight) {
-          state.phase = Phase.fight;
+      state.time += tick;
+      if (state.time >= 3000 && state.phase !== Phase.fight) {
+        state.phase = Phase.fight;
+        state.time = 0;
+      } else if (state.phase === Phase.fight) {
+        if (state.time >= 500) {
           state.time = 0;
-        } else if (state.phase === Phase.fight) {
-          if (state.time >= 500) {
-            state.time = 0;
-            // console.log(
-            //   "board before\n",
-            //   this1.state.board?.cells
-            //     ?.map(
-            //       ({ x, y, character }, index) =>
-            //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-            //     )
-            //     .join("")
-            // );
-            state.board.cells.clone().forEach((cell, index) => {
-              if (cell.character) {
-                const end = getDirection(state, cell.x, cell.y, goal);
-                const coords = getCoords(state, cell.x, cell.y, goal);
-                // console.log(
-                //   `start ${index} ${cell.x} ${cell.y} end ${end.x} ${end.y}, coords ${coords[0]} ${coords[1]}`
-                // );
-                if (coords[0] === cell.x && coords[1] === cell.y) {
-                  attack(state, cell);
-                } else {
-                  const moved = moveCharacterFromMessage(
-                    state,
-                    {},
-                    {
-                      startIndex: index,
-                      endIndex: coords[0] + coords[1] * state.board.rowLength,
-                    }
-                  );
-                  console.log("could move?", moved);
-                  if (!moved) {
-                    attack(state, cell);
+          // console.log(
+          //   "board before\n",
+          //   this1.state.board?.cells
+          //     ?.map(
+          //       ({ x, y, character }, index) =>
+          //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+          //     )
+          //     .join("")
+          // );
+          state.board.cells.clone().forEach((cell, index) => {
+            if (cell.character) {
+              const end = getDirection(state, cell.x, cell.y, goal);
+              const coords = getCoords(state, cell.x, cell.y, goal);
+              // console.log(
+              //   `start ${index} ${cell.x} ${cell.y} end ${end.x} ${end.y}, coords ${coords[0]} ${coords[1]}`
+              // );
+              if (coords[0] === cell.x && coords[1] === cell.y) {
+                attack(state, cell);
+              } else {
+                const moved = moveCharacterFromMessage(
+                  state,
+                  {},
+                  {
+                    startIndex: index,
+                    endIndex: coords[0] + coords[1] * state.board.rowLength,
                   }
+                );
+                console.log("could move?", moved);
+                if (!moved) {
+                  attack(state, cell);
                 }
-
-                // const end = getDirection(state, cell.x, cell.y, goal);
-                // console.log("character found at ", cell.x, cell.y);
-                // console.log("going to ", end.x + state.board.rowLength * end.y);
-                // const moved = moveCharacter(
-                //   this1.state,
-                //   cell.x,
-                //   cell.y,
-                //   end.x,
-                //   end.y
-                // );
-                // console.log("moved ", moved, cell.character?.name);
               }
-            });
-            // console.log(
-            //   "board after\n",
-            //   this1.state.board?.cells
-            //     ?.map(
-            //       ({ x, y, character }, index) =>
-            //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
-            //     )
-            //     .join("")
-            // );
-          }
+              const orig = state.board.cells.at(index);
+              console.log(
+                "orig mhealth",
+                orig.character?.maxHealth,
+                "attack",
+                orig.character?.attack,
+                "health",
+                orig.character?.health
+              );
+              // const end = getDirection(state, cell.x, cell.y, goal);
+              // console.log("character found at ", cell.x, cell.y);
+              // console.log("going to ", end.x + state.board.rowLength * end.y);
+              // const moved = moveCharacter(
+              //   this1.state,
+              //   cell.x,
+              //   cell.y,
+              //   end.x,
+              //   end.y
+              // );
+              // console.log("moved ", moved, cell.character?.name);
+            }
+          });
+          // console.log(
+          //   "board after\n",
+          //   this1.state.board?.cells
+          //     ?.map(
+          //       ({ x, y, character }, index) =>
+          //         (character?.name ?? index) + "," + (y == 7 ? "\n" : "")
+          //     )
+          //     .join("")
+          // );
         }
       }
     }
-  }, tick);
+  }
+};
+const gameLoop = (state: RoomState, this1: Room<RoomState>) => {
+  const tick = 500;
+  setInterval(() => game(state), tick);
 };
 
 export class BattleArenaRoom extends Room<RoomState> {
   maxClients = 2;
-  setSimulationInterval(onTickCallback?: SimulationCallback, delay?: number) {
-    super.setSimulationInterval(onTickCallback, delay);
-  }
 
   onCreate(options: any) {
     this.setState(new RoomState());
-    gameLoop(this.state, this);
+    this.clock.start();
+    const delayedInterval = this.clock.setInterval(() => {
+      // console.log("Time now " + this.clock.currentTime);
+      game(this.state);
+    }, 1000);
+
+    // gameLoop(this.state, this);
     this.onMessage("moveCharacter", (client, message) => {
       //
       // handle "type" message
